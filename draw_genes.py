@@ -11,15 +11,15 @@ import genome.transcript
 import genome.gene
 import genome.coord
 
-from genome.draw.window import Window
-from genome.draw.genestrack import GenesTrack
-from genome.draw.llrtrack import LLRTrack
-from genome.draw.featuretrack import FeatureTrack
-from genome.draw.readdepthtrack import ReadDepthTrack
-from genome.draw.genotypereaddepthtrack import GenotypeReadDepthTrack
-from genome.draw.statetrack import StateTrack
-from genome.draw.ernststatetrack import ErnstStateTrack
-from genome.draw.segmenttrack import SegmentTrack
+from draw.window import Window
+from draw.genestrack import GenesTrack
+from draw.llrtrack import LLRTrack
+from draw.featuretrack import FeatureTrack
+from draw.readdepthtrack import ReadDepthTrack
+from draw.genotypereaddepthtrack import GenotypeReadDepthTrack
+from draw.statetrack import StateTrack
+from draw.ernststatetrack import ErnstStateTrack
+from draw.segmenttrack import SegmentTrack
 
 
 grdevices = importr('grDevices')
@@ -273,7 +273,7 @@ def main():
         exit(2)
     
     config = SafeConfigParser()
-    config.read(sys.argv[1])
+    config.read(['conf/tracks.conf', sys.argv[1]])
     
     gdb = genome.db.GenomeDB()
     r = robjects.r

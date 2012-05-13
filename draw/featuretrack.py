@@ -105,6 +105,6 @@ class FeatureTrack(Track):
                 label_len = float(len(label))
                 offset = (0.0075 * label_len) * region_len
                 r.text(x=(feat.end + offset), y=mid,
-                       labels=r.c(label), col=color, cex=0.3)
+                       labels=r.c(label), col=color, cex=1.0)
 
 

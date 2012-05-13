@@ -36,28 +36,37 @@ class ContinuousTrack(Track):
                                           
         is_nan = np.isnan(self.values)
 
-        if "max_val" in options:
-            self.max_val = float(options['max_val'])
+        if np.any(~is_nan):
+            self.max_val = np.max(self.values[~is_nan])
         else:
-            if np.any(~is_nan):
-                self.max_val = np.max(self.values[~is_nan])
-            else:
-                self.max_val = 0.0
+            self.max_val = 0.0
             # sys.stderr.write("  max: %f\n" % self.max_val)
 
-        if "min_val" in options:
-            self.min_val = float(options['min_val'])
+        if "max_val" in options:
+            # treat max_val in config as minimum allowed maximum value
+            if float(options['max_val']) > self.max_val:
+                self.max_val = float(options['max_val'])
+
+        if np.any(~is_nan):
+            self.min_val = np.min(self.values[~is_nan])
         else:
-            if np.any(~is_nan):
-                self.min_val = np.min(self.values[~is_nan])
-            else:
-                self.min_val = 0.0
+            self.min_val = 0.0
             # sys.stderr.write("  min: %f\n" % self.min_val)
+
+        if "min_val" in options:
+            # treat min_val as maximum allowed minimum value
+            if float(options['min_val']) < self.min_val:
+                self.min_val = float(options['min_val'])
 
         if 'n_ticks' in options:
             self.n_ticks = int(options['n_ticks'])
         else:
             self.n_ticks = 3
+
+        if 'draw_border' in options:
+            self.draw_border = self.parse_bool_str(options['draw_border'])
+        else:
+            self.draw_border = True
 
 
     def get_segments(self, vals):
@@ -223,12 +232,17 @@ class ContinuousTrack(Track):
         # new way of drawing: convert contiguous segments
         # to polygon coordinates
         (x, y) = self.get_polygon_coords(x1, x2, y)
-        
+
+        if self.draw_border:
+            border = "black"
+        else:
+            border = robjects.NA_Logical
+            
         if len(x) > 0:
             r.polygon(robjects.FloatVector(x),
                       robjects.FloatVector(y),
                       col=self.color,
-                      border="black")
+                      border=border)
                       
         # old way, 
         # n_seg = len(x1)

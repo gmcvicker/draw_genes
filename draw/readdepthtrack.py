@@ -18,7 +18,8 @@ class ReadDepthTrack(ContinuousTrack):
 
           if source == "gdb":
                track_name = options['track']
-               gdb = genome.db.GenomeDB()
+               # gdb = genome.db.GenomeDB()
+               gdb = options['gdb']
                track = gdb.open_track(track_name)
                values = track.get_nparray(region.chrom, start=region.start,
                                           end=region.end)

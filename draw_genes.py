@@ -274,8 +274,15 @@ def main():
     
     config = SafeConfigParser()
     config.read(['conf/tracks.conf', sys.argv[1]])
-    
-    gdb = genome.db.GenomeDB()
+
+    if config.has_option("MAIN", "ASSEMBLY"):
+        assembly = config.get("MAIN", "ASSEMBLY")
+        gdb = genome.db.GenomeDB(assembly=assembly)
+    else:
+        gdb = genome.db.GenomeDB()
+
+    sys.stderr.write("using assembly %s\n" % gdb.assembly)
+
     r = robjects.r
     chrom_dict = gdb.get_chromosome_dict()
 
@@ -360,12 +367,20 @@ def main():
                 continue
 
             options = dict(config.items(section_name))
+            # add genome db to the options, so that it can
+            # be optionally used by tracks
+            options['gdb'] = gdb
+            
             try:
                 track_class = track_types[options['type']]
                 track = track_class(region, options)
                 window.add_track(track)
             except TypeError as err:
                 sys.stderr.write("WARNING: could not init track %s of "
+                                 "type %s:\n%s\n" %
+                                 (track_name, options['type'], str(err)))
+            except ValueError as err:
+                sys.stderr.write("WARNING: could not open track %s or "
                                  "type %s:\n%s\n" %
                                  (track_name, options['type'], str(err)))
 

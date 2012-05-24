@@ -18,19 +18,27 @@ class ReadDepthTrack(ContinuousTrack):
 
           if source == "gdb":
                track_name = options['track']
-               # gdb = genome.db.GenomeDB()
                gdb = options['gdb']
                track = gdb.open_track(track_name)
                values = track.get_nparray(region.chrom, start=region.start,
                                           end=region.end)
 
                if "scale_factor" in options:
-                    scale_factor = float(options['scale_factor'])                    
-                    stat = gdb.get_track_stat(track)
-                    scale = scale_factor / float(stat.sum)
-                    values = values * scale
-                    sys.stderr.write("  total reads %d, using scale %.3f\n" %
-                                     (stat.sum, scale))
+                    scale_factor = float(options['scale_factor'])
+                    try:
+                         stat = gdb.get_track_stat(track)
+                         scale = scale_factor / float(stat.sum)
+                                                  
+                         values = values * scale
+                         sys.stderr.write("  total reads %d, using "
+                                          "scale %.3f\n" % (stat.sum, scale))
+                    except ValueError as err:
+                         sys.stderr.write("  WARNING: cannot scale values for "
+                                          "track %s because track stats have "
+                                          "not been calculated. run "
+                                          "set_track_stats.py first.\n" %
+                                          track.name)
+                         scale = 1.0
                track.close()
 
           if source == "wig":

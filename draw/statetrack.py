@@ -41,7 +41,8 @@ class StateTrack(Track):
         self.track_name = options['track']
         self.features = []
 
-        gdb = genome.db.GenomeDB()
+        # get GenomeDB instance
+        gdb = options['gdb']
         track = gdb.open_track(self.track_name)
 
         self.features = self.__create_features(region, track)

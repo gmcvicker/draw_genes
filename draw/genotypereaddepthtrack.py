@@ -30,7 +30,8 @@ class GenotypeReadDepthTrack(ContinuousTrack):
           if total_count == 0:
                values[:] = np.nan
           else:
-               gdb = genome.db.GenomeDB()
+               # get GenomeDB instance
+               gdb = options['gdb']
 
                # sum values from all tracks
                for track_name in track_names:

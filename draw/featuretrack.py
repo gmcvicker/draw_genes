@@ -43,7 +43,7 @@ class FeatureTrack(Track):
         self.features = []
 
         # get overlapping features from database
-        gdb = genome.db.GenomeDB()
+        gdb = options['gdb']
         track = gdb.open_track(self.track_name)
         table = track.h5f.getNode("/" + self.region.chrom.name)
 

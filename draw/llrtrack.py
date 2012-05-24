@@ -21,7 +21,7 @@ class LLRTrack(ContinuousTrack):
 
         if source == "gdb":
             track_name = options['track']
-            gdb = genome.db.GenomeDB()
+            gdb = options['gdb']
             track = gdb.open_track(track_name)
             values = track.get_nparray(region.chrom, start=region.start,
                                        end=region.end)
@@ -62,14 +62,19 @@ class LLRTrack(ContinuousTrack):
         else:
             min_val = self.min_val
 
-        if self.max_val == min_val:
+        if self.max_val < 0.0:
+            max_val = 0.0
+        else:
+            max_val = self.max_val
+
+        if max_val == min_val:
             yscale = 1.0
         else:
             yscale = self.height / (self.max_val - min_val)
 
         # put the axis at 0
-        axis = -min_val*yscale + self.bottom
-        vals = self.values*yscale + axis
+        axis = (-min_val * yscale) + self.bottom
+        vals = (self.values * yscale) + axis
 
         (x1, x2, y) = self.get_segments(vals)
 

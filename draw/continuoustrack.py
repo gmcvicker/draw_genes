@@ -15,6 +15,7 @@ def smooth_values(vals, win_sz):
     
 
 class ContinuousTrack(Track):
+
     def __init__(self, values, region, options):
         super(ContinuousTrack, self).__init__(region, options)
 
@@ -33,30 +34,9 @@ class ContinuousTrack(Track):
             self.values = smooth_values(values, smooth_window_sz)
         else:
             self.values = values
-                                          
-        is_nan = np.isnan(self.values)
 
-        if np.any(~is_nan):
-            self.max_val = np.max(self.values[~is_nan])
-        else:
-            self.max_val = 0.0
-            # sys.stderr.write("  max: %f\n" % self.max_val)
+        self.set_y_range(options)
 
-        if "max_val" in options:
-            # treat max_val in config as minimum allowed maximum value
-            if float(options['max_val']) > self.max_val:
-                self.max_val = float(options['max_val'])
-
-        if np.any(~is_nan):
-            self.min_val = np.min(self.values[~is_nan])
-        else:
-            self.min_val = 0.0
-            # sys.stderr.write("  min: %f\n" % self.min_val)
-
-        if "min_val" in options:
-            # treat min_val as maximum allowed minimum value
-            if float(options['min_val']) < self.min_val:
-                self.min_val = float(options['min_val'])
 
         if 'n_ticks' in options:
             self.n_ticks = int(options['n_ticks'])
@@ -67,6 +47,45 @@ class ContinuousTrack(Track):
             self.draw_border = self.parse_bool_str(options['draw_border'])
         else:
             self.draw_border = True
+
+
+    def set_y_range(self, options):
+        """Sets the maximum and minimum values of the y-axis"""
+        # first set maximum and minimum values to range of data
+        is_nan = np.isnan(self.values)
+
+        if np.any(~is_nan):
+            self.max_val = np.max(self.values[~is_nan])
+        else:
+            self.max_val = 0.0
+
+        if np.any(~is_nan):
+            self.min_val = np.min(self.values[~is_nan])
+        else:
+            self.min_val = 0.0
+
+        # Make sure that y-axis maximum and minimum are at least
+        # those specified by soft_min_val and soft_max_val.
+        # These are 'soft' limits in that the axis is allowed to
+        # grow beyond them to accomodate larger/smaller values.
+        if "soft_max_val" in options:
+            # this is the minimum maximum y-axis value
+            if float(options['soft_max_val']) > self.max_val:
+                self.max_val = float(options['soft_max_val'])
+
+        if "soft_min_val" in options:
+            #  maximum allowed minimum value for y-axis
+            if float(options['soft_min_val']) < self.min_val:
+                self.min_val = float(options['soft_min_val'])
+
+        # If max and min values are specified these are 'hard'
+        # limits. Just set the range of the x-axis to these values
+        if 'max_val' in options:
+            self.max_val = float(options['max_val'])
+
+        if 'min_val' in options:
+            self.min_val = float(options['min_val'])
+            
 
 
     def get_segments(self, vals):
@@ -142,9 +161,9 @@ class ContinuousTrack(Track):
         x1 = [self.region.start - tick_width] * n_ticks
         span = (self.max_val - self.min_val) / (n_ticks-1)
 
-        if span >= 1.0:
+        if span >= 10.0:
             # use integers
-            span = int(span)
+            span = round(span)
         
         y = np.arange(n_ticks) * span + self.min_val
 
@@ -165,7 +184,7 @@ class ContinuousTrack(Track):
                     y1=robjects.FloatVector([y_transform[-1]]))
 
         # draw labels beside tick marks
-        if span >= 1.0:
+        if span >= 10.0:
             labels = [str(int(val)) for val in y]
         elif span >= 0.5:
             labels = ["%.1f" % val for val in y]
@@ -174,10 +193,11 @@ class ContinuousTrack(Track):
         else:
             labels = [str("%.2e" % val) for val in y]
         
-        x_label = self.region.start - tick_width
+        # x_label = self.region.start - tick_width * 0.5
+        x_label = self.region.start
 
         r.text(x=x_label, y=robjects.FloatVector(y_transform),
-               pos=2, cex=self.cex,
+               pos=2, cex=self.cex * 0.75,
                labels=robjects.StrVector(labels))
 
 

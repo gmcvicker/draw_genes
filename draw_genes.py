@@ -20,6 +20,7 @@ from draw.genotypereaddepthtrack import GenotypeReadDepthTrack
 from draw.statetrack import StateTrack
 from draw.ernststatetrack import ErnstStateTrack
 from draw.segmenttrack import SegmentTrack
+from draw.gccontenttrack import GCContentTrack
 
 
 grdevices = importr('grDevices')
@@ -33,7 +34,8 @@ def get_track_types():
             "GenotypeReadDepthTrack" : GenotypeReadDepthTrack,
             "StateTrack" : StateTrack,
             "ErnstStateTrack" : ErnstStateTrack,
-            "SegmentTrack" : SegmentTrack}
+            "SegmentTrack" : SegmentTrack,
+            "GCContentTrack" : GCContentTrack}
 
 
 
@@ -370,15 +372,30 @@ def main():
             # add genome db to the options, so that it can
             # be optionally used by tracks
             options['gdb'] = gdb
+
+            if 'type' not in options:
+                sys.stderr.write("WARNING: track %s does not define "
+                                 "TYPE in configuration file\n" % track_name)
+                continue
+
+            track_type = options['type']
+
+            if track_type not in track_types:
+                sys.stderr.write("WARNING: don't how to create "
+                                 "track %s with type %s.\n"
+                                 "         Known types are %s\n"
+                                 % (track_name, track_type,
+                                    ", ".join(track_types.keys())))
+                continue
             
             try:
-                track_class = track_types[options['type']]
+                track_class = track_types[track_type]
                 track = track_class(region, options)
                 window.add_track(track)
             except TypeError as err:
                 sys.stderr.write("WARNING: could not init track %s of "
                                  "type %s:\n%s\n" %
-                                 (track_name, options['type'], str(err)))
+                                 (track_name, track_type, str(err)))
             except ValueError as err:
                 sys.stderr.write("WARNING: could not open track %s or "
                                  "type %s:\n%s\n" %

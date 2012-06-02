@@ -21,6 +21,7 @@ from draw.statetrack import StateTrack
 from draw.ernststatetrack import ErnstStateTrack
 from draw.segmenttrack import SegmentTrack
 from draw.gccontenttrack import GCContentTrack
+from draw.normreaddepthtrack import NormReadDepthTrack
 
 
 grdevices = importr('grDevices')
@@ -35,7 +36,8 @@ def get_track_types():
             "StateTrack" : StateTrack,
             "ErnstStateTrack" : ErnstStateTrack,
             "SegmentTrack" : SegmentTrack,
-            "GCContentTrack" : GCContentTrack}
+            "GCContentTrack" : GCContentTrack,
+            "NormReadDepthTrack" : NormReadDepthTrack}
 
 
 
@@ -397,7 +399,7 @@ def main():
                                  "type %s:\n%s\n" %
                                  (track_name, track_type, str(err)))
             except ValueError as err:
-                sys.stderr.write("WARNING: could not open track %s or "
+                sys.stderr.write("WARNING: could not open track %s of "
                                  "type %s:\n%s\n" %
                                  (track_name, options['type'], str(err)))
 

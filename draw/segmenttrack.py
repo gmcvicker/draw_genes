@@ -59,6 +59,6 @@ class SegmentTrack(Track):
                feat_bottom,
                robjects.FloatVector(feat_right),
                feat_top,
-               col=self.color, border=robjects.IntVector("NA"))
+               col=self.color, border=robjects.r("NA"))
 
 

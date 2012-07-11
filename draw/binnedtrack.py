@@ -55,4 +55,4 @@ class BinnedTrack(Track):
                robjects.FloatVector(ybottom),
                robjects.FloatVector(xright),
                robjects.FloatVector(ytop), col=self.color,
-               border=robjects.NA_Logical)
+               border=robjects.r("NA"))

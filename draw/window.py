@@ -68,7 +68,7 @@ class Window(object):
                    robjects.FloatVector(x_right),
                    bottom,
                    col="grey90",
-                   border=robjects.NA_Logical)
+                   border=robjects.r("NA"))
     
         
     def draw_axis(self, r):

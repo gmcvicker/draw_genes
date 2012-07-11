@@ -256,7 +256,7 @@ class ContinuousTrack(Track):
         if self.draw_border:
             border = "black"
         else:
-            border = robjects.NA_Logical
+            border = robjects.r("NA")
             
         if len(x) > 0:
             r.polygon(robjects.FloatVector(x),

@@ -97,7 +97,7 @@ class FeatureTrack(Track):
                 label = feat.name
             
             r.rect(feat.start, bottom, feat.end, top,
-                   col=color, border=robjects.IntVector("NA"))
+                   col=color, border=robjects.r("NA"))
 
             if self.draw_labels:     
                 # draw feature label?

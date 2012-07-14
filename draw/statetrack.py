@@ -98,7 +98,7 @@ class StateTrack(Track):
                 color = "grey50"
             
             r.rect(feat.start, bottom, feat.end, top, col=color,
-                   border=robjects.r("NA"))
+                   border=color)
 
         # draw a label for the entire track
         self.draw_track_label(r)

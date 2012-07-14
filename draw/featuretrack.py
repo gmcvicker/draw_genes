@@ -6,6 +6,7 @@ from track import Track
 import genome.db
 import rpy2.robjects as robjects
 
+MIN_FEAT_LEN = 5
 
 class FeatureTrack(Track):
     """Class for drawing a single transcript"""
@@ -17,21 +18,8 @@ class FeatureTrack(Track):
             self.draw_labels = self.parse_bool_str(options['draw_labels'])
         else:
             self.draw_labels = False
+        
 
-        if 'color' in options:
-            self.color = options['color'].replace('"', '')
-        else:
-            self.color = "black"
-
-        if 'fwd_color' in options:
-            self.fwd_color = options['fwd_color'].replace('"', '')
-        else:
-            self.fwd_color = self.color
-
-        if 'rev_color' in options:
-            self.rev_color = options['rev_color'].replace('"', '')
-        else:
-            self.rev_color = self.color
 
         if 'cex' in options:
             self.cex = float(options['cex'])
@@ -54,6 +42,7 @@ class FeatureTrack(Track):
                                       row['end'], strand=row['strand'],
                                       score=row['score'], name=row['name'])
             self.features.append(feat)
+
 
         # set padding here if labels are used...
         if self.draw_labels:
@@ -88,16 +77,19 @@ class FeatureTrack(Track):
 
             if feat.strand == 1:
                 color = self.fwd_color
+                border_color = self.fwd_border_color
                 label = "> %s" % feat.name
             elif feat.strand == -1:
                 color = self.rev_color
+                border_color = self.rev_border_color
                 label = "< %s" % feat.name
             else:
                 color = self.color
+                border_color = self.border_color
                 label = feat.name
-            
-            r.rect(feat.start, bottom, feat.end, top,
-                   col=color, border=robjects.r("NA"))
+                
+            r.rect(feat.start - 0.5, bottom, feat.end + 0.5, top,
+                   col=color, border=border_color)
 
             if self.draw_labels:     
                 # draw feature label?
@@ -105,6 +97,6 @@ class FeatureTrack(Track):
                 label_len = float(len(label))
                 offset = (0.0075 * label_len) * region_len
                 r.text(x=(feat.end + offset), y=mid,
-                       labels=r.c(label), col=color, cex=1.0)
+                       labels=r.c(label), col=color, cex=self.cex)
 
 

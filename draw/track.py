@@ -96,14 +96,6 @@ class Track(object):
     of the draw method."""
     
     def __init__(self, region, options):
-
-        self.border = False
-        if "border" in options:
-            self.border = self.parse_bool_str(options['border'])
-        else:
-            self.border = False
-
-
         if 'height' in options:
             self.height = float(options['height'])
         else:
@@ -119,6 +111,8 @@ class Track(object):
         else:
             self.track_label = ""
 
+        self.set_colors(options)
+
         self.region = region
         self.left = None
         self.right = None
@@ -130,6 +124,63 @@ class Track(object):
         self.n_row = 0
         self.row_assignment = {}
 
+
+    def set_colors(self, options):
+        """sets the color and border attributes of this track,
+        using options in provided dictionary"""
+        
+        # set the color and border color for the track
+        if 'color' in options:
+            self.color = options['color'].replace('"', '')
+        else:
+            # use a default color
+            self.color = "#E41A1C"
+
+        # some tracks allow different fill for fwd / rev strand
+        if 'fwd_color' in options:
+            self.fwd_color = options['fwd_color'].replace('"', '')
+        else:
+            # use default color for fwd strand
+            self.fwd_color = self.color
+
+        if 'rev_color' in options:
+            self.rev_color = options['rev_color'].replace('"', '')
+        else:
+            self.rev_color = self.color
+        
+
+        # set colors for border
+        if 'draw_border' in options:
+            self.draw_border = self.parse_bool_str(options['draw_border'])
+        else:
+            self.draw_border = True
+            
+        if self.draw_border:            
+            if 'border_color' in options:
+                self.border_color = options['border_color'].replace('"', '')
+            else:
+                # use same color as fill
+                self.border_color = self.color
+
+            if 'fwd_border_color' in options:
+                self.fwd_border_color = \
+                    options['fwd_border_color'].replace('"', '')
+            else:
+                self.fwd_border_color = self.fwd_color
+
+            if 'rev_border_color' in options:
+                self.rev_border_color = \
+                    options['rev_border_color'].replace('"', '')
+            else:
+                self.rev_border_color = self.rev_color
+        else:
+            # no not draw any border
+            self.border_color = robjects.r("NA")
+            self.rev_border_color = robjects.r("NA")
+            self.fwd_border_color = robjects.r("NA")
+                
+
+        
 
     def parse_bool_str(self, bool_str):
         """Utility method for parsing boolean option strings"""
@@ -148,19 +199,6 @@ class Track(object):
         self.right = right
         self.top = top
         self.bottom = bottom
-
-    def draw_border(self, r, color="black"):
-        x0 = [self.left, self.left]
-        x1 = [self.right, self.right]
-        y0 = [self.top, self.bottom]
-        y1 = [self.top, self.bottom]
-           
-        r.segments(x0=robjects.FloatVector(x0),
-                   y0=robjects.FloatVector(y0),
-                   x1=robjects.FloatVector(x1),
-                   y1=robjects.FloatVector(y1), col=color,
-                   lwd=1)
-
 
 
     def draw_track_label(self, r, color="black"):
@@ -184,9 +222,6 @@ class Track(object):
 
 
     def draw(self, r):
-        if self.border:
-            self.draw_border(r)
-
         self.draw_track(r)
 
         if self.track_label:

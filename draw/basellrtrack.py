@@ -31,9 +31,6 @@ class BaseLLRTrack(ContinuousTrack):
 
     
     def draw_track(self, r):
-        if self.border:
-            self.draw_border(r)
-
         if self.min_val > 0.0:
             min_val = 0.0
         else:

@@ -19,12 +19,6 @@ class ContinuousTrack(Track):
     def __init__(self, values, region, options):
         super(ContinuousTrack, self).__init__(region, options)
 
-        if 'color' in options:
-            self.color = options['color'].replace('"', '')
-        else:
-            # use a default color
-            self.color = "#E41A1C"
-
         if 'smooth' in options:
             smooth_window_sz = int(options['smooth'])
         else:
@@ -42,11 +36,6 @@ class ContinuousTrack(Track):
             self.n_ticks = int(options['n_ticks'])
         else:
             self.n_ticks = 3
-
-        if 'draw_border' in options:
-            self.draw_border = self.parse_bool_str(options['draw_border'])
-        else:
-            self.draw_border = True
 
 
     def set_y_range(self, options):
@@ -252,17 +241,12 @@ class ContinuousTrack(Track):
         # new way of drawing: convert contiguous segments
         # to polygon coordinates
         (x, y) = self.get_polygon_coords(x1, x2, y)
-
-        if self.draw_border:
-            border = "black"
-        else:
-            border = robjects.r("NA")
             
         if len(x) > 0:
             r.polygon(robjects.FloatVector(x),
                       robjects.FloatVector(y),
                       col=self.color,
-                      border=border)
+                      border=self.border_color)
                       
         # old way, 
         # n_seg = len(x1)

@@ -7,11 +7,62 @@ import rpy2.robjects as robjects
 from track import Track
 
 
-def smooth_values(vals, win_sz):
+def smooth_values(vals, win_sz, method):
+    if method == 'average':
+        return moving_average(vals, win_sz)
+    elif method == 'savitsky-golay':
+        return savitsky_golay(vals, win_sz)
+    else:
+        return vals
+
+# adapted from http://www.scipy.org/Cookbook/SavitskyGolay
+def savitsky_golay(vals, win_sz, order=2):
+    try:
+        win_sz = np.abs(np.int(win_sz))
+        order = np.abs(np.int(order))
+    except ValueError, msg:
+        raise ValueError("smoothing window size and order "
+                         "must be of type int")
+
+    if win_sz < 1:
+        raise TypeError("smoothing window size size must be a "
+                        "positive odd number")
+
+    if win_sz < order + 2:
+        if order % 2 == 0:
+            win_sz = order + 3
+        else:
+            win_sz = order + 2
+        sys.stderr.write("  WARNING: smoothing window size is too small "
+                         "for the polynomial's order; setting to minimum "
+                         "value of %s.\n" % win_sz)
+
+    if win_sz % 2 != 1:
+        win_sz += 1
+        sys.stderr.write("  WARNING: smoothing window size must be odd; "
+                         "incrementing by one.\n")
+
+    order_range = range(order+1)
+    half_window = (win_sz -1) // 2
+
+    # precompute coefficients
+    b = np.mat([[k**i for i in order_range] for k in range(-half_window, half_window+1)])
+    m = np.linalg.pinv(b).A[0]
+
+    # pad the signal at the extremes with
+    # values taken from the signal itself
+    firstvals = vals[0] - np.abs(vals[1:half_window+1][::-1] - vals[0])
+    lastvals = vals[-1] + np.abs(vals[-half_window-1:-1][::-1] - vals[-1])
+
+    vals = np.concatenate((firstvals, vals, lastvals))
+    vals = np.convolve(m, vals, mode='valid')
+    vals[vals < 0.0] = 0.0
+    return vals
+    
+def moving_average(vals, win_sz):
     win = np.ones(win_sz, dtype=np.float32)
     # take moving average using win_sz sliding window
     return np.convolve(win / win.sum(), vals, mode='same')
-    
     
 
 class ContinuousTrack(Track):
@@ -25,7 +76,11 @@ class ContinuousTrack(Track):
             smooth_window_sz = 1
         
         if smooth_window_sz > 1:
-            self.values = smooth_values(values, smooth_window_sz)
+            if 'smoother' in options:
+                smoother = options['smoother']
+            else:
+                smoother = 'average'
+            self.values = smooth_values(values, smooth_window_sz, smoother)
         else:
             self.values = values
 

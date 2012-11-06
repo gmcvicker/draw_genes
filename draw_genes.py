@@ -103,54 +103,29 @@ def get_coord_regions(config, chrom_dict):
     return regions
 
 
-
-def assign_linked_attributes(regions, attrib_name, filename):
-    """Assign attributes to regions from a file, which contains one attribute
-    line for each feature"""
-    if filename.endswith(".gz"):
-        f = gzip.open(filename, "rb")
-    else:
-        f = open(filename, "r")
-
-    i = 0
-    for l in f:
-        if i >= len(regions):
-            raise ValueError("number of lines in attribute file "
-                             "does not match number of regions")
-
-        if hasattr(regions[i], 'attrib'):
-            regions[i].attrib[attrib_name] = l.rstrip()
-        else:
-            regions[i].attrib = {attrib_name : l.rstrip()}
-        
-        i += 1
-
-
-    if i != len(regions):
-        raise ValueError("number of lines in attribute file "
-                         "does not match number of regions")
-        
-    f.close()
     
 
 def get_bedfile_regions(config, chrom_dict):
     path = config.get("REGION_BEDFILE", "PATH")
 
     min_region_size = config.getint("REGION_BEDFILE", "MIN_REGION_SIZE")
+
+    if config.has_option("REGION_BEDFILE", "HAS_HEADER"):
+        has_header = config.getboolean("REGION_BEDFILE", "HAS_HEADER")
+    else:
+        has_header = False
+
+    if config.has_option("REGION_BEDFILE", "REGION_ATTRIBUTES"):
+        attrib_str = config.get("REGION_BEDFILE", "REGION_ATTRIBUTES")
+        region_attrib = attrib_str.split(",")
+    else:
+        region_attrib = []
+        
+    regions = genome.coord.read_bed(path, chrom_dict, 
+                                    min_region_size=min_region_size,
+                                    has_header=has_header,
+                                    other_attrib=region_attrib)
     
-    regions = genome.coord.read_bed(path, chrom_dict,
-                                    min_region_size=min_region_size)
-
-    if config.has_option("REGION_BEDFILE", "LINKED_ATTRIBUTES"):
-        # allow a set of other files to be specified that
-        # contain additional information about each region
-        linked_keys = config.get("REGION_BEDFILE",
-                                 "LINKED_ATTRIBUTES").split(",")
-
-        for k in linked_keys:
-            filename = config.get("REGION_BEDFILE", "LINKED_FILE_%s" % k)
-            assign_linked_attributes(regions, k, filename)            
-
     # choose random set of genes to plot
     n_rand = config.getint("REGION_BEDFILE", "RANDOM_SUBSET")
     if n_rand > 0:

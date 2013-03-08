@@ -29,11 +29,12 @@ class Window(object):
     of the Track.draw method."""
     
     def __init__(self, region, margin=0.10, draw_grid=True,
-                 draw_midline=False, cex=1.0):
+                 vert_lines=[], draw_midline=False, cex=1.0):
         self.region = region
         self.margin = margin
         self.draw_grid = draw_grid
         self.draw_midline = draw_midline
+        self.vert_lines = vert_lines
         self.cex = cex
         self.tracks = []
 
@@ -142,10 +143,16 @@ class Window(object):
         if self.draw_grid:
             self.draw_gridlines(r, top, bottom)
 
+        # draw a vertical line at the midpoint
         if self.draw_midline:
             region_mid = (self.region.start + self.region.end) / 2
             r.lines(robjects.FloatVector([region_mid, region_mid]),
                     robjects.FloatVector([top, bottom]), col="grey70")
+
+        # draw vertical lines where specified
+        for x in self.vert_lines:
+            r.lines(robjects.FloatVector([x, x]), robjects.FloatVector([top, bottom]),
+                    col="grey")
 
         # now draw each of the tracks
         for track in self.tracks:

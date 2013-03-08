@@ -317,11 +317,18 @@ def main():
             draw_midline = config.getboolean("MAIN", "DRAW_MIDLINE")
         else:
             draw_midline = False
+
+        # draw some vertical lines on this plot?
+        if config.has_option("MAIN", "DRAW_VERTLINES"):
+            vert_lines = [float(x) for x in config.get("MAIN","DRAW_VERTLINES").split(",")]
+        else:
+            vert_lines = []
         
         margin = config.getfloat("MAIN", "WINDOW_MARGIN")
         cex = config.getfloat("MAIN", "CEX")
         window = Window(region, draw_grid=draw_grid,
                         draw_midline=draw_midline,
+                        vert_lines=vert_lines,
                         margin=margin, cex=cex)
 
         # add gene tracks to window

@@ -25,7 +25,20 @@ class GenotypeReadDepthTrack(ContinuousTrack):
         total_mapped_reads = 0
 
         gdb = options['gdb']
-        
+
+        if 'color' in options:
+            pass
+        else:
+            geno_class = options['genotype']
+
+            # set default colors for each genotype class
+            if geno_class == "ref":
+                options['color'] = "#2A3A42"
+            elif geno_class == "het":
+                options['color'] = "#6C8796"
+            elif geno_class == "alt":
+                options['color'] = "#B9E5FB"
+
         for track in tracks:
             stat = genome.trackstat.get_stats(gdb, track)
             total_mapped_reads += stat.sum

@@ -22,6 +22,9 @@ class ErnstStateTrack(StateTrack):
                     'state_label_0' : 'none',
                     'state_color_0' : "white",
 
+                    'state_label_1' : '1 strong promoter',
+                    'state_color_1' : "#e41a1c",
+                    
                     'state_label_2' : '2 weak promoter',
                     'state_color_2' : "#fbb4ae",
 

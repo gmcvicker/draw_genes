@@ -10,12 +10,17 @@ from continuoustrack import ContinuousTrack
 
 SNP_UNDEF = -1
 
-INDIVIDUAL_FILE = "/data/share/10_IND/IMPUTE/samples.txt"
-
 
 class GenotypeReadDepthTrack(ContinuousTrack):     
         
     def __init__(self, region, options):
+        if "individual_file" not in options:
+            raise ValueError("Config for track should specify "
+                             "INDIVIDUAL_FILE option")
+
+        self.individual_file = options['individual_file']
+
+        # read individuals from file
         inds = self.get_individuals(region, options)
         
         tracks = self.get_tracks(inds, options)
@@ -38,7 +43,8 @@ class GenotypeReadDepthTrack(ContinuousTrack):
                 options['color'] = "#6C8796"
             elif geno_class == "alt":
                 options['color'] = "#B9E5FB"
-
+        
+                
         for track in tracks:
             stat = genome.trackstat.get_stats(gdb, track)
             total_mapped_reads += stat.sum
@@ -74,7 +80,7 @@ class GenotypeReadDepthTrack(ContinuousTrack):
                   
     def read_all_individuals(self):
         ind_list = []
-        f = open(INDIVIDUAL_FILE)
+        f = open(self.individual_file)
         for l in f:
             ind = l.split()[0].replace("NA", "")
             ind_list.append(ind)
@@ -94,15 +100,12 @@ class GenotypeReadDepthTrack(ContinuousTrack):
         geno_tab = geno_track.h5f.getNode("/%s" % region.chrom.name)
 
         snp_positions = [int(x) for x in region.snp_pos.split(",")]
-        chisq_stat = [float(x) for x in region.chisq_stat.split(",")]
 
-        # use SNP with highest chisq stat to determine genotype classes
-        snp_pos = None
-        best_stat = None
-        for pos, stat in zip(snp_positions, chisq_stat):
-            if best_stat is None or stat > best_stat:
-                best_stat = stat
-                snp_pos = pos
+        # just use first snp specified
+        if len(snp_positions) < 1:
+            raise ValueError("regions must specify at least one snp_pos")
+        
+        snp_pos = snp_positions[0]
         
         i = snp_index_track.get_val(region.chrom, snp_pos)
 

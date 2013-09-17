@@ -21,11 +21,11 @@ following command (replacing src with whatever directory you would like to use):
 
     mkdir ~/src
     cd ~/src
-    git clone ~gmcvicker/proj/draw_genes
+    git clone https://github.com/gmcvicker/draw_genes/
 
 ## Usage
 
-Run python draw_genes.py <config_file> to generate figures.
+Run `python draw_genes.py <config_file>` to generate figures.
 
 
 ## Configuration

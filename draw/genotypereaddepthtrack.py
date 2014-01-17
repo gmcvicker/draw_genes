@@ -37,12 +37,25 @@ class GenotypeReadDepthTrack(ContinuousTrack):
             geno_class = options['genotype']
 
             # set default colors for each genotype class
+            # some nice genotype colors:
+            # dark blue, purple, orange
+            #   "F47927" - orange, alt
+            #   "98509F" - purple, het
+            #   "203569" - dark blue, ref
             if geno_class == "ref":
-                options['color'] = "#2A3A42"
+                 options['color'] = "#203569"
             elif geno_class == "het":
-                options['color'] = "#6C8796"
+                options['color'] = "#98509F"
             elif geno_class == "alt":
-                options['color'] = "#B9E5FB"
+                 options['color'] = "#F47927"
+
+            # or shades of blue:
+            # if geno_class == "ref":
+            #     options['color'] = "#2A3A42"
+            # elif geno_class == "het":
+            #     options['color'] = "#6C8796"
+            # elif geno_class == "alt":
+            #     options['color'] = "#B9E5FB"
         
                 
         for track in tracks:

@@ -16,7 +16,7 @@ class BaseLLRTrack(ContinuousTrack):
     def __init__(self, values, region, options):
         super_init = super(BaseLLRTrack, self).__init__
         super_init(values, region, options)
-
+        
         if "pos_color" in options:
             self.pos_color = options['pos_color'].replace('"', '')
         else:
@@ -50,6 +50,7 @@ class BaseLLRTrack(ContinuousTrack):
         axis = (-min_val * yscale) + self.bottom
         vals = (self.values * yscale) + axis
 
+                
         (x1, x2, y) = self.get_segments(vals)
 
         n_seg = len(x1)
@@ -65,6 +66,7 @@ class BaseLLRTrack(ContinuousTrack):
             pos_vals = ((y >= axis) & (~np.isnan(y)))
             neg_vals = ((y < axis) & (~np.isnan(y)))
 
+
             # color positive and negative values separately,
             # don't draw 0 values
             if np.any(pos_vals):
@@ -79,7 +81,7 @@ class BaseLLRTrack(ContinuousTrack):
 
                 
             if np.any(neg_vals):
-                # draw values below zero
+                # draw values below zero                
                 (p_x, p_y) = self.get_polygon_coords(x1[neg_vals],
                                                      x2[neg_vals],
                                                      y[neg_vals],

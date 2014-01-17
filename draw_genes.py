@@ -5,6 +5,7 @@ from ConfigParser import SafeConfigParser
 import numpy as np
 import rpy2.robjects as robjects
 from rpy2.robjects.packages import importr
+import argparse
 
 import genome.db
 import genome.transcript
@@ -246,13 +247,25 @@ def get_genes(config, chrom_dict):
 
 
 
-def main():
-    if len(sys.argv) != 2:
-        sys.stderr.write("usage: %s <config_file>\n" % sys.argv[0])
-        exit(2)
+def parse_args():
+    parser = argparse.ArgumentParser(description="makes plots of genomic regions")
+
+    parser.add_argument("--tracks_file", help="path to file containing "
+                        "configuration information for drawing tracks",
+                        default="conf/tracks.conf")
+
+    parser.add_argument("config_file", help="path to file containing "
+                        "all other config information, including which tracks to draw")
+
+    return parser.parse_args()
     
+
+
+def main():
+    args = parse_args()
+        
     config = SafeConfigParser()
-    config.read(['conf/tracks.conf', sys.argv[1]])
+    config.read([args.tracks_file, args.config_file])
 
     if config.has_option("MAIN", "ASSEMBLY"):
         assembly = config.get("MAIN", "ASSEMBLY")
@@ -321,14 +334,45 @@ def main():
         # draw some vertical lines on this plot?
         if config.has_option("MAIN", "DRAW_VERTLINES"):
             vert_lines = [float(x) for x in config.get("MAIN","DRAW_VERTLINES").split(",")]
+            vert_lines_col = ["black"] * len(vert_lines)
         else:
             vert_lines = []
-        
+            vert_lines_col = []
+
+        # region attributes can also be used to specify locations of
+        # vertical lines
+        if config.has_option("MAIN", "VERTLINES_ATTRIBUTES"):
+            attr_names = config.get("MAIN", "VERTLINES_ATTRIBUTES").split(",")
+
+            sys.stderr.write("drawing vertical lines corresponding to "
+                             "region attrs %s\n" %",".join(attr_names))
+            
+            for a in attr_names:
+                if hasattr(region, a):
+                    pos = int(getattr(region, a))
+                    vert_lines.append(pos)
+                else:
+                    sys.stderr.write("region is missing attribute %s\n" % a)
+                
+            # colors can be specified for these lines
+            if config.has_option("MAIN", "VERTLINES_COLORS"):
+                cols = config.get("MAIN", "VERTLINES_COLORS").split(",")
+                vert_lines_col.extend(cols)
+
+        if len(vert_lines_col) < len(vert_lines):
+            # set extra lines to color black
+            diff = len(vert_lines) - len(vert_lines_col)
+            vert_lines_col.extend(["black"] * diff)
+
+        sys.stderr.write("vert_lines: %s\n" % repr(vert_lines))
+        sys.stderr.write("vert_lines_col: %s\n" % repr(vert_lines_col))
+                
         margin = config.getfloat("MAIN", "WINDOW_MARGIN")
         cex = config.getfloat("MAIN", "CEX")
         window = Window(region, draw_grid=draw_grid,
                         draw_midline=draw_midline,
                         vert_lines=vert_lines,
+                        vert_lines_col=vert_lines_col,
                         margin=margin, cex=cex)
 
         # add gene tracks to window

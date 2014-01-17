@@ -139,11 +139,11 @@ class ContinuousTrack(Track):
         x2 = []
         y = []
 
-        region_len = self.region.end - self.region.start + 1
+        # region_len = self.region.end - self.region.start + 1
         
-        if vals.size != region_len:
-            raise ValueError("expected number of values (%d) to match "
-                             "region len (%d)" % (vals.size, region_len))
+        # if vals.size != region_len:
+        #     raise ValueError("expected number of values (%d) to match "
+        #                      "region len (%d)" % (vals.size, region_len))
         
         cur_start = cur_end = cur_val = None
         pos = self.region.start-1
@@ -189,7 +189,7 @@ class ContinuousTrack(Track):
             #sys.stderr.write("%d segments for regions of size %d "
             #             "(undef=%d, def=%d)\n" %
             #             (len(x1), region_len, n_undef, n_def))
-        return (x1, x2, y)
+        return (np.array(x1), np.array(x2), np.array(y))
 
 
     def draw_y_axis(self, r, n_ticks=3):
@@ -282,7 +282,7 @@ class ContinuousTrack(Track):
         p_x.append(prev_x)
         p_y.append(axis)
 
-        return (p_x, p_y)
+        return (np.array(p_x), np.array(p_y))
             
         
     def draw_track(self, r):
@@ -290,18 +290,27 @@ class ContinuousTrack(Track):
 
         vals = (self.values - self.min_val) * yscale + self.bottom
 
-        # identify contiguous segments with same values
-        (x1, x2, y) = self.get_segments(vals)
+        # break region into smaller blocks because
+        # some programs (e.g. illustrator) don't like it when
+        # polygons have too many points
+        block_sz = 10000
+        for block_start in range(0, vals.size, block_sz):
+            block_end = min(block_start + block_sz, vals.size)
 
-        # new way of drawing: convert contiguous segments
-        # to polygon coordinates
-        (x, y) = self.get_polygon_coords(x1, x2, y)
+            block_vals = vals[block_start:block_end]
             
-        if len(x) > 0:
-            r.polygon(robjects.FloatVector(x),
-                      robjects.FloatVector(y),
-                      col=self.color,
-                      border=self.border_color)
+            # identify contiguous segments with same values
+            (x1, x2, y) = self.get_segments(block_vals)
+
+            # new way of drawing: convert contiguous segments
+            # to polygon coordinates
+            (x, y) = self.get_polygon_coords(x1, x2, y)
+
+            if len(x) > 0:
+                r.polygon(robjects.FloatVector(x + block_start),
+                          robjects.FloatVector(y),
+                          col=self.color,
+                          border=self.border_color)
                       
         # old way, 
         # n_seg = len(x1)

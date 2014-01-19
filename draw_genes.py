@@ -23,6 +23,7 @@ from draw.ernststatetrack import ErnstStateTrack
 from draw.segmenttrack import SegmentTrack
 from draw.gccontenttrack import GCContentTrack
 from draw.normreaddepthtrack import NormReadDepthTrack
+from draw.pointstrack import PointsTrack
 
 
 grdevices = importr('grDevices')
@@ -38,8 +39,8 @@ def get_track_types():
             "ErnstStateTrack" : ErnstStateTrack,
             "SegmentTrack" : SegmentTrack,
             "GCContentTrack" : GCContentTrack,
-            "NormReadDepthTrack" : NormReadDepthTrack}
-
+            "NormReadDepthTrack" : NormReadDepthTrack
+            "PointsTrack" : PointsTrack}
 
 
 def sample(elements, n, replace=False):    

@@ -4,7 +4,7 @@ import sys
 import numpy as np
 import rpy2.robjects as robjects
 
-from track import NumericTrack
+from numerictrack import NumericTrack
 
 
 class ContinuousTrack(NumericTrack):
@@ -12,7 +12,7 @@ class ContinuousTrack(NumericTrack):
     a continuous curve or profile"""
 
     def __init__(self, values, region, options):
-        super(ContinuousTrack, self).__init__(region, options)
+        super(ContinuousTrack, self).__init__(values, region, options)
 
         if 'smooth' in options:
             smooth_window_sz = int(options['smooth'])

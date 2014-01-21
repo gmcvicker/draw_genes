@@ -6,6 +6,7 @@ import numpy as np
 import rpy2.robjects as robjects
 from rpy2.robjects.packages import importr
 import argparse
+import traceback
 
 import genome.db
 import genome.transcript
@@ -39,7 +40,7 @@ def get_track_types():
             "ErnstStateTrack" : ErnstStateTrack,
             "SegmentTrack" : SegmentTrack,
             "GCContentTrack" : GCContentTrack,
-            "NormReadDepthTrack" : NormReadDepthTrack
+            "NormReadDepthTrack" : NormReadDepthTrack,
             "PointsTrack" : PointsTrack}
 
 
@@ -277,6 +278,7 @@ def main():
     sys.stderr.write("using assembly %s\n" % gdb.assembly)
 
     r = robjects.r
+    
     chrom_dict = gdb.get_chromosome_dict()
 
     if config.getboolean("MAIN", "DRAW_GENES"):
@@ -317,7 +319,7 @@ def main():
 
         sys.stderr.write("writing output to single file '%s'\n" % filename)
 
-
+        
     plot_num = 0
     for i in range(len(regions)):
         region = regions[i]
@@ -365,8 +367,8 @@ def main():
             diff = len(vert_lines) - len(vert_lines_col)
             vert_lines_col.extend(["black"] * diff)
 
-        sys.stderr.write("vert_lines: %s\n" % repr(vert_lines))
-        sys.stderr.write("vert_lines_col: %s\n" % repr(vert_lines_col))
+        # sys.stderr.write("vert_lines: %s\n" % repr(vert_lines))
+        # sys.stderr.write("vert_lines_col: %s\n" % repr(vert_lines_col))
                 
         margin = config.getfloat("MAIN", "WINDOW_MARGIN")
         cex = config.getfloat("MAIN", "CEX")
@@ -425,10 +427,12 @@ def main():
                 sys.stderr.write("WARNING: could not init track %s of "
                                  "type %s:\n%s\n" %
                                  (track_name, track_type, str(err)))
+                traceback.print_exc()
             except ValueError as err:
                 sys.stderr.write("WARNING: could not open track %s of "
                                  "type %s:\n%s\n" %
                                  (track_name, options['type'], str(err)))
+                traceback.print_exc()
 
         if single_file:
             # each region is a separate page of a single PDF
@@ -446,12 +450,16 @@ def main():
             if output_format == "pdf":
                 filename = "%s%d.pdf" % (output_prefix, plot_num)
                 grdevices.pdf(file=filename, width=width, height=height)
+                
+                # turn off clipping
+                r.par(xpd=True)
+
             elif output_format == "png":
                 filename = "%s%d.png" % (output_prefix, plot_num)
                 grdevices.png(file=filename, width=width, height=height)
             else:
                 raise ValueError("unknown output format %s" % output_format)
-
+            
             # render window
             window.draw(r)
             grdevices.dev_off()

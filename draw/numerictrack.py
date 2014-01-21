@@ -15,6 +15,8 @@ class NumericTrack(Track):
     def __init__(self, values, region, options):
         super(NumericTrack, self).__init__(region, options)
 
+        self.values = values
+        
         if 'n_ticks' in options:
             self.n_ticks = int(options['n_ticks'])
         else:

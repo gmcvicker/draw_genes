@@ -56,7 +56,7 @@ class ReadDepthTrack(ContinuousTrack):
                values[f] += 1
                values = np.log2(values)
 
-          super_init = super(ReadDepthTrack, self).__init__          
+          super_init = super(ReadDepthTrack, self).__init__
           super_init(values, region, options)
           
 

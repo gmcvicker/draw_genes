@@ -79,6 +79,9 @@ class PointsTrack(NumericTrack):
 
         
     def draw_track(self, r):
+
+        sys.stderr.write("DRAWING POINTS\n")
+        
         yscale = self.height / (self.max_val - self.min_val)
 
         vals = (self.values - self.min_val) * yscale + self.bottom
@@ -87,7 +90,7 @@ class PointsTrack(NumericTrack):
             r.points(robjects.FloatVector(self.pos),
                      robjects.FloatVector(vals),
                      col=self.color,
-                     bg=self.color,
+                     bg=self.color, cex=0.5,
                      pch=21)
 
             # draw line at 0
@@ -116,14 +119,16 @@ class PointsTrack(NumericTrack):
                     r.points(robjects.FloatVector(self.pos[below_thresh]),
                              robjects.FloatVector(vals[below_thresh]),
                              col=self.below_thresh_color,
-                             bg=self.below_thresh_color,
+                             bg=self.below_thresh_color, cex=0.5,
                              pch=21)
                     
                 if np.any(above_thresh):
+                    sys.stderr.write("drawing points above threshold:%s\n" %
+                                     ",".join(["%d" % x for x in self.pos[above_thresh]]))
                     r.points(robjects.FloatVector(self.pos[above_thresh]),
                              robjects.FloatVector(vals[above_thresh]),
                              col=self.above_thresh_color,
-                             bg=self.above_thresh_color,
+                             bg=self.above_thresh_color, cex=0.5,
                              pch=21)
                     
 

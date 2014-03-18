@@ -369,7 +369,6 @@ def main():
 
         # sys.stderr.write("vert_lines: %s\n" % repr(vert_lines))
         # sys.stderr.write("vert_lines_col: %s\n" % repr(vert_lines_col))
-                
         margin = config.getfloat("MAIN", "WINDOW_MARGIN")
         cex = config.getfloat("MAIN", "CEX")
         window = Window(region, draw_grid=draw_grid,
@@ -392,7 +391,6 @@ def main():
             if track_name.strip() == "":
                 continue
             sys.stderr.write("  adding track %s\n" % track_name)
-
             section_name = "TRACK_" + track_name
             if not config.has_section(section_name):
                 sys.stderr.write("WARNING: no config section '%s' for "
@@ -433,7 +431,7 @@ def main():
                                  "type %s:\n%s\n" %
                                  (track_name, options['type'], str(err)))
                 traceback.print_exc()
-
+        
         if single_file:
             # each region is a separate page of a single PDF
             window.draw(r)

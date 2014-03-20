@@ -199,7 +199,11 @@ class ContinuousTrack(NumericTrack):
             
         
     def draw_track(self, r):
-        yscale = self.height / (self.max_val - self.min_val)
+
+        if self.max_val == self.min_val:
+            yscale = self.height
+        else:
+            yscale = self.height / (self.max_val - self.min_val)
 
         vals = (self.values - self.min_val) * yscale + self.bottom
 

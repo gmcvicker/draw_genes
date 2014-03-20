@@ -108,8 +108,22 @@ class GenotypeReadDepthTrack(ContinuousTrack):
         region's SNP"""
         gdb = options['gdb']
 
-        snp_index_track = gdb.open_track('impute2/snp_index')
-        geno_track = gdb.open_track("impute2/all_geno_probs")
+        if 'snp_index_track' in options:
+            snp_index_trackname = options['snp_index_track']
+        else:
+            sys.stderr.write("no SNP_INDEX_TRACK specified in config, "
+                             "assuming /impute2/snp_index\n")
+            snp_index_trackname = 'impute2/snp_index'
+
+        if 'geno_prob_track' in options:
+            geno_prob_trackname = options['geno_prob_track']
+        else:
+            sys.stderr.write("no GENO_PROB_TRACK specified in config, "
+                             "assuming /impute2/yri_geno_probs\n")
+            geno_prob_trackname = 'impute2/yri_geno_probs'
+            
+        snp_index_track = gdb.open_track(snp_index_trackname)
+        geno_track = gdb.open_track(geno_prob_trackname)
         geno_tab = geno_track.h5f.getNode("/%s" % region.chrom.name)
 
         snp_positions = [int(x) for x in region.snp_pos.split(",")]

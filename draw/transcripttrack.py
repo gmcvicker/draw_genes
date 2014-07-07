@@ -15,6 +15,11 @@ class TranscriptTrack(Track):
         self.color = options['color'].replace('"', '')
         self.utr_color = options['utr_color'].replace('"', '')
 
+        if 'draw_label' in options:
+            self.draw_label = self.parse_bool_str(options['draw_label'])
+        else:
+            self.draw_label = True
+
     
     def draw_coding_region(self, r, coord):
         # add 1 b/c drawn coordinates are "between" start and end
@@ -170,5 +175,6 @@ class TranscriptTrack(Track):
         for intron in tr.get_introns():
             self.draw_intron(r, intron)
 
-        self.draw_label(r)
+        if self.draw_label:
+            self.draw_label(r)
 

@@ -16,9 +16,9 @@ class TranscriptTrack(Track):
         self.utr_color = options['utr_color'].replace('"', '')
 
         if 'draw_label' in options:
-            self.draw_label = self.parse_bool_str(options['draw_label'])
+            self.do_label = self.parse_bool_str(options['draw_label'])
         else:
-            self.draw_label = True
+            self.do_label = True
 
     
     def draw_coding_region(self, r, coord):
@@ -175,6 +175,6 @@ class TranscriptTrack(Track):
         for intron in tr.get_introns():
             self.draw_intron(r, intron)
 
-        if self.draw_label:
+        if self.do_label:
             self.draw_label(r)
 

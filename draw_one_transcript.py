@@ -13,62 +13,63 @@ from rpy2.robjects.packages import importr
 
 
 
-if len(sys.argv) != 3:
-    sys.stderr.write("usage: %s <transcript_filename> <tr_name>\n" % 
+if len(sys.argv) < 3:
+    sys.stderr.write("usage: %s <transcript_filename> <tr_name1> "
+                     "[<tr_name2> ...]\n" % 
                      sys.argv[0])
     exit(2)
 
 tr_path = sys.argv[1]
-tr_name = sys.argv[2]
+
+tr_names = sys.argv[2:]
+
 
 gdb = genome.db.GenomeDB()
 chrom_dict = gdb.get_chromosome_dict()
 
 sys.stderr.write("reading transcripts\n")
 trs = genome.transcript.read_transcripts(tr_path, chrom_dict)
+tr_dict = dict([(tr.name, tr) for tr in trs])
 
-tr = None
-for transcript in trs:
-    if transcript.name == tr_name:
-        tr = transcript
-        break
+for tr_name in tr_names:
+    if tr_name not in tr_dict:
+        sys.stderr.write("WARNING: could not find transcript %s\n" % tr_name)
+        continue
 
-if tr is None:
-    raise ValueError("could not find transcript %s\n" % tr_name)
+    tr = tr_dict[tr_name]
     
-r = robjects.r
+    r = robjects.r
+
+    grdevices = importr('grDevices')
+
+    output_format = "pdf"
+    output_filename = "%s.%s" % (tr_name, output_format)
+    width=8
+    height=5
 
 
-grdevices = importr('grDevices')
+    sys.stderr.write("drawing transcript (filename=%s)\n" % output_filename)
 
-output_format = "pdf"
-output_filename = "%s.%s" % (tr_name, output_format)
-width=8
-height=5
+    grdevices.pdf(file=output_filename, width=width, height=height)
 
+    region = tr
+    options = {'color' : "#08306B",
+               'utr_color' : '#DEEBF7', 
+               'border' : 'false',
+               'height' : 0.1}
 
-sys.stderr.write("drawing transcript (filename=%s)\n" % output_filename)
+    window = Window(region, draw_grid=False)
 
-grdevices.pdf(file=output_filename, width=width, height=height)
+    tr_track = TranscriptTrack(tr, region, options)
+    window.add_track(tr_track)
 
-region = tr
-options = {'color' : "#08306B",
-           'utr_color' : '#DEEBF7', 
-           'border' : 'false',
-           'height' : 1}
+    window.draw(r)
 
-window = Window(region, draw_grid=False)
+    # top = 0
+    # bottom = -1
+    # tr_track.set_position(tr.start, tr.end, top, bottom)
 
-tr_track = TranscriptTrack(tr, region, options)
-window.add_track(tr_track)
+    # tr_track.draw_track(r)
 
-window.draw(r)
-
-# top = 0
-# bottom = -1
-# tr_track.set_position(tr.start, tr.end, top, bottom)
-
-# tr_track.draw_track(r)
-
-grdevices.dev_off()
+    grdevices.dev_off()
 

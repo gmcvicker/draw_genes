@@ -123,8 +123,6 @@ class PointsTrack(NumericTrack):
                              pch=21)
                     
                 if np.any(above_thresh):
-                    sys.stderr.write("drawing points above threshold:%s\n" %
-                                     ",".join(["%d" % x for x in self.pos[above_thresh]]))
                     r.points(robjects.FloatVector(self.pos[above_thresh]),
                              robjects.FloatVector(vals[above_thresh]),
                              col=self.above_thresh_color,

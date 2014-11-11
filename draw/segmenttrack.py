@@ -64,7 +64,7 @@ class SegmentTrack(Track):
         else:
             starts = []
 
-        d = np.diff(vals)
+        d = np.diff(vals.astype(np.int8))
         # starts are at transitions from 0 => 1 
         starts.extend(np.where(d == 1.0)[0] + self.region.start + 1)
         # and ends are at transitions from 1 => 0
@@ -74,7 +74,8 @@ class SegmentTrack(Track):
             ends.append(self.region.end)
 
         if len(starts) != len(ends):
-            raise ValueError("Expected same number of starts and ends")
+            raise ValueError("Expected same number of starts "
+                             "(%d) and ends (%d)" % (len(starts), len(ends)))
 
         for s, e in zip(starts, ends):
             feat = genome.coord.Coord(self.region.chrom, s, e)

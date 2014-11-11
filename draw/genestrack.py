@@ -40,7 +40,7 @@ class GenesTrack(Track):
         if longest_only:
             sys.stderr.write("  only drawing longest isoform of each gene\n")
 
-            gene_groups = gene.group_transcripts(self.overlap_trs)
+            gene_groups = genome.gene.group_transcripts(self.overlap_trs)
 
             sys.stderr.write("  grouped %d transcripts into %d genes\n" % (len(self.overlap_trs), len(gene_groups)))
             
@@ -51,7 +51,10 @@ class GenesTrack(Track):
             self.overlap_trs = longest_trs
             
         # assign rows to the transcripts
-        padding = region.length() * 0.2
+        if self.draw_label:
+            padding = region.length() * 0.2
+        else:
+            padding = region.length() * 0.01
         self.assign_feature_rows(self.overlap_trs, padding=padding)
 
         if self.height <= 0.0:
@@ -78,7 +81,7 @@ class GenesTrack(Track):
                           'utr_color' : self.utr_color,
                           'border' : 'false',
                           'height' : str(tr_height),
-                          'draw_label' = draw_label_str}
+                          'draw_label' : draw_label_str}
             
             tr_track = TranscriptTrack(tr, self.region, tr_options)
 

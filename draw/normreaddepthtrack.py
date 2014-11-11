@@ -60,7 +60,13 @@ class NormReadDepthTrack(BaseLLRTrack):
           track2.close()
 
           ratio = np.log2((values1 + pseudo_count) / (values2 + pseudo_count))
-
+          
+          sys.stderr.write("  %d > 0; %d < 0; %d == 0\n" %
+                           (np.sum(ratio > 0.0), np.sum(ratio < 0.0),
+                            np.sum(ratio == 0.0)))
+          
+          
+          
           super_init = super(NormReadDepthTrack, self).__init__
           super_init(ratio, region, options)
           

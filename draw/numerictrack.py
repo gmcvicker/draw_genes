@@ -31,12 +31,9 @@ class NumericTrack(Track):
 
         if np.any(~is_nan):
             self.max_val = np.max(self.values[~is_nan])
-        else:
-            self.max_val = 0.0
-
-        if np.any(~is_nan):
             self.min_val = np.min(self.values[~is_nan])
         else:
+            self.max_val = 0.0
             self.min_val = 0.0
 
         # Make sure that y-axis maximum and minimum are at least

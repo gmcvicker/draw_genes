@@ -96,6 +96,11 @@ class Track(object):
     of the draw method."""
     
     def __init__(self, region, options):
+        self.init_attrib(region, options)
+
+
+
+    def init_attrib(self, region, options):
         if 'height' in options:
             self.height = float(options['height'])
         else:
@@ -123,7 +128,8 @@ class Track(object):
         self.n_rev_row = 0
         self.n_row = 0
         self.row_assignment = {}
-
+        
+        
 
     def set_colors(self, options):
         """sets the color and border attributes of this track,

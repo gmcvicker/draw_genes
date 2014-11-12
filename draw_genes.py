@@ -26,7 +26,6 @@ from draw.gccontenttrack import GCContentTrack
 from draw.normreaddepthtrack import NormReadDepthTrack
 from draw.pointstrack import PointsTrack
 
-
 grdevices = importr('grDevices')
 
 
@@ -422,15 +421,19 @@ def main():
                 track = track_class(region, options)
                 window.add_track(track)
             except TypeError as err:
+                sys.stderr.write(("-" * 60) + "\n") 
                 sys.stderr.write("WARNING: could not init track %s of "
                                  "type %s:\n%s\n" %
                                  (track_name, track_type, str(err)))
                 traceback.print_exc()
+                sys.stderr.write(("-" * 60) + "\n") 
             except ValueError as err:
+                sys.stderr.write(("-" * 60) + "\n") 
                 sys.stderr.write("WARNING: could not open track %s of "
                                  "type %s:\n%s\n" %
                                  (track_name, options['type'], str(err)))
                 traceback.print_exc()
+                sys.stderr.write(("-" * 60) + "\n") 
         
         if single_file:
             # each region is a separate page of a single PDF

@@ -164,7 +164,7 @@ class GenotypeReadDepthTrack(ContinuousTrack):
 
         if i == SNP_UNDEF:
             raise ValueError("there is no SNP at position %s:%d\n" %
-                             region.chrom.name, snp_pos)
+                             (region.chrom.name, snp_pos))
 
         geno_probs = geno_tab[i,]
 

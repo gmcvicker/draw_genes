@@ -2,11 +2,10 @@ import sys
 
 import numpy as np
 
-import genome.db
 import genome.trackstat
 
-from continuoustrack import ContinuousTrack
-from basellrtrack import BaseLLRTrack
+from .continuoustrack import ContinuousTrack
+from .basellrtrack import BaseLLRTrack
 
 class NormReadDepthTrack(BaseLLRTrack):
      def __init__(self, region, options):

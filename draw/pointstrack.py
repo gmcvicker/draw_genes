@@ -2,8 +2,8 @@ import numpy as np
 import rpy2.robjects as robjects
 import sys
 
-from track import Track
-from numerictrack import NumericTrack
+from .track import Track
+from .numerictrack import NumericTrack
 
 
 class PointsTrack(NumericTrack):

@@ -2,11 +2,9 @@ import sys
 
 import numpy as np
 
-import genome.db
-
 import genome.trackstat
 
-from continuoustrack import ContinuousTrack
+from .continuoustrack import ContinuousTrack
 
 import rpy2.robjects as robjects
 

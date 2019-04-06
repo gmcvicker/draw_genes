@@ -1,9 +1,8 @@
 
 import sys
 
-from track import Track
+from .track import Track
 
-import genome.db
 import rpy2.robjects as robjects
 
 import numpy as np

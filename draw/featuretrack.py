@@ -1,9 +1,9 @@
 
 import sys
 
-from track import Track
+from .track import Track
 
-import genome.db
+import genome.coord
 import rpy2.robjects as robjects
 
 MIN_FEAT_LEN = 5

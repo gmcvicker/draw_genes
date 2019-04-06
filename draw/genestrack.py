@@ -3,53 +3,49 @@ import sys
 
 from genome import coord
 import genome.gene
-from track import Track
-from transcripttrack import TranscriptTrack
+from .track import Track
+from .transcripttrack import TranscriptTrack
 
         
 class GenesTrack(Track):
     """Class for drawing all of the genes in a region"""
     
-    def __init__(self, all_transcripts, region, options):
+    def __init__(self, all_genes, region, options):
         # call superclass constructor
         super(GenesTrack, self).__init__(region, options)
 
-        self.transcripts = all_transcripts
-
+        self.genes = all_genes
         self.n_fwd_rows = None
         self.n_rev_rows = None
         self.row_assignment = None
         self.color = options['color']
         self.utr_color = options['utr_color']
+        self.longest_isoform_only = self.parse_bool_str(options['longest_isoform_only'])
 
         if 'draw_label' in options:
             self.draw_label = self.parse_bool_str(options['draw_label'])
         else:
             self.draw_label = True
 
-        # get all transcripts that overlap region
-        self.overlap_trs = coord.get_coord_overlaps(self.region,
-                                                    self.transcripts,
-                                                    use_strand=False)
-
-        if 'longest_isoform_only' in options:
-            longest_only = self.parse_bool_str(options['longest_isoform_only'])
-        else:
-            longest_only = False
-
-        if longest_only:
-            sys.stderr.write("  only drawing longest isoform of each gene\n")
-
-            gene_groups = genome.gene.group_transcripts(self.overlap_trs)
-
-            sys.stderr.write("  grouped %d transcripts into %d genes\n" % (len(self.overlap_trs), len(gene_groups)))
+        sys.stderr.write("%d genes total\n" % len(all_genes))
             
-            longest_trs = []
-            for gene in gene_groups:
-                longest_trs.append(gene.get_longest_transcript())
+        # get all genes that overlap region
+        self.overlap_genes = coord.get_coord_overlaps(self.region,
+                                                      self.genes,
+                                                      use_strand=False)
 
-            self.overlap_trs = longest_trs
-            
+        sys.stderr.write("%d genes overlap region\n" % len(self.overlap_genes))
+
+        self.overlap_trs = []
+        for g in self.overlap_genes:
+            if self.longest_isoform_only:
+                # only longest transcript for each gene
+                self.overlap_trs.append(g.get_longest_transcript())
+            else:
+                # use all transcripts
+                self.overlap_trs.extend(gene.transcripts)
+        sys.stderr.write("%d transcripts overlap region" % len(self.overlap_trs))
+        
         # assign rows to the transcripts
         if self.draw_label:
             padding = region.length() * 0.2

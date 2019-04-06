@@ -1,9 +1,8 @@
 
 import sys
 
-from statetrack import StateTrack
+from .statetrack import StateTrack
 
-import genome.db
 import rpy2.robjects as robjects
 
 
@@ -67,7 +66,7 @@ class ErnstStateTrack(StateTrack):
                     "state_label_15" : "15 repetitive/cnv",
                     "state_color_15" : "grey80"}
 
-        for key, val in defaults.items():
+        for key, val in list(defaults.items()):
             if key not in options:
                 options[key] = val
                         

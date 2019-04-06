@@ -4,10 +4,10 @@ import sys
 import numpy as np
 import rpy2.robjects as robjects
 
-import genome.db
+import genome.track
 
-from continuoustrack import ContinuousTrack
-from basellrtrack import BaseLLRTrack
+from .continuoustrack import ContinuousTrack
+from .basellrtrack import BaseLLRTrack
 
 
 class LLRTrack(BaseLLRTrack):
@@ -22,9 +22,8 @@ class LLRTrack(BaseLLRTrack):
             source = options['source']
 
         if source == "gdb":
-            track_name = options['track']
-            gdb = options['gdb']
-            track = gdb.open_track(track_name)
+            track_path = options['track']
+            track = genome.track.Track(track_path)
             values = track.get_nparray(region.chrom, start=region.start,
                                        end=region.end)
             track.close()

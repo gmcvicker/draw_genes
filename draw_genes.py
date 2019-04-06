@@ -1,6 +1,17 @@
+#
+# TODO:
+#  - remove GenomeDB
+#  - read chromosomes from chromInfo or just use
+#    chromosomes specified by tracks??
+#  - why are gene tracks treated differently, and not just added
+#    as another track?
+#  - should instantiate tracks just based on class name from config
+#    should not require import or get_track_types() function
+#
+
 import sys
 
-from ConfigParser import SafeConfigParser
+from configparser import ConfigParser
 
 import numpy as np
 import rpy2.robjects as robjects
@@ -8,10 +19,14 @@ from rpy2.robjects.packages import importr
 import argparse
 import traceback
 
-import genome.db
+import genome.track
 import genome.transcript
 import genome.gene
 import genome.coord
+import genome.chrom
+import genome.gtf
+
+import region
 
 from draw.window import Window
 from draw.genestrack import GenesTrack
@@ -43,179 +58,6 @@ def get_track_types():
             "PointsTrack" : PointsTrack}
 
 
-def sample(elements, n, replace=False):    
-    n_elem = len(elements)
-
-    if n > n_elem and replace == False:
-        raise ValueError("cannot sample %d elements "
-                         "without replacement from list of "
-                         "%d elements" % (n, n_elem))
-
-    if replace:
-        # get random indices into list of elements(repeated values allowed)
-        idx = np.randint(0, n_elem, n)
-    else:
-        # get randomly permuted indices into list of elements
-        idx = np.random.permutation(n_elem)
-    
-    # take elements corresponding to first n permutted indices
-    return [elements[i] for i in idx[0:n]]
-    
-
-
-
-def gene_filter(g):
-    """Used for filtering genes. Returns true if gene is on a non-random
-    non-haplotype autosome or chrX"""
-    return((g.chrom.is_x) or (g.chrom.is_auto) and not
-           (g.chrom.is_rand or g.chrom.is_hap))
-
-
-
-def get_coord_regions(config, chrom_dict):
-    coord_strs = config.get("REGION_COORD", "COORDS").split(",")
-    regions = []
-
-    for coord_str in coord_strs:
-        words = coord_str.split(":")
-        
-        if len(words) != 2:
-            raise ValueError("expected region format to be chr:start-end, "
-                             "got '%s'" % coord_str)
-        
-        chrom_name = words[0]
-        if chrom_name in chrom_dict:
-            chrom = chrom_dict[chrom_name]
-        else:
-            raise ValueError("unknown chromosome %s" % chrom_name)
-        
-        start_end = words[1].split("-")
-        
-        if len(start_end) != 2:
-            raise ValueError("expected region format to be chr:start-end")
-        
-        start = int(start_end[0])
-        end   = int(start_end[1])
-        if end < start:
-            raise ValueError("expected start to be >= end")
-        
-        region = genome.coord.Coord(chrom, start, end, strand=0)
-        regions.append(region)
-
-    return regions
-
-
-    
-
-def get_bedfile_regions(config, chrom_dict):
-    path = config.get("REGION_BEDFILE", "PATH")
-
-    min_region_size = config.getint("REGION_BEDFILE", "MIN_REGION_SIZE")
-
-    if config.has_option("REGION_BEDFILE", "HAS_HEADER"):
-        has_header = config.getboolean("REGION_BEDFILE", "HAS_HEADER")
-    else:
-        has_header = False
-
-    if config.has_option("REGION_BEDFILE", "REGION_ATTRIBUTES"):
-        attrib_str = config.get("REGION_BEDFILE", "REGION_ATTRIBUTES")
-        region_attrib = attrib_str.split(",")
-    else:
-        region_attrib = []
-        
-    regions = genome.coord.read_bed(path, chrom_dict, 
-                                    min_region_size=min_region_size,
-                                    has_header=has_header,
-                                    other_attrib=region_attrib)
-    
-    # choose random set of genes to plot
-    n_rand = config.getint("REGION_BEDFILE", "RANDOM_SUBSET")
-    if n_rand > 0:
-        sys.stderr.write("sampling random subset of %d regions\n" %
-                         n_rand)
-        seed = config.getint("REGION_BEDFILE", "SEED")
-        np.random.seed(seed)
-        regions = sample(regions, n_rand)
-
-    return regions
-        
-
-
-
-def get_gene_regions(config, gene_dict):
-    regions = []
-    flanking = config.getint("REGION_GENE", "FLANKING")
-    name_str = config.get("REGION_GENE", "GENE_NAMES")
-    gene_names = [name.upper() for name in name_str.split(",")]
-
-    # build a dictionary of genes, keyed on name
-    lookup_dict = {}
-    for gene_list in gene_dict.values():
-        for g in gene_list:
-            for tr in g.transcripts:
-                tr_name = tr.name.upper()
-                if tr_name in gene_dict:
-                    lookup_dict[tr_name.upper()].add(g)
-                else:
-                    lookup_dict[tr_name.upper()] = set([g])
-
-    # search for genes with the requested names
-    for gene_name in gene_names:
-        if gene_name in lookup_dict:
-            for g in lookup_dict[gene_name]:
-                # draw a region around each gene
-                region = g.copy()
-                region.expand(flanking)
-                regions.append(region)
-        else:
-            sys.stderr.write("no gene with name %s found\n" % gene_name)
-
-    return regions
-
-
-
-def get_rand_regions(config, gene_dict):
-    # choose random set of genes to plot
-    n_rand = config.getint("REGION_RANDOM", "N_REGION")
-    seed = config.getint("REGION_RANDOM", "SEED")
-    flanking = config.getint("REGION_RANDOM", "FLANKING")
-
-    combined_gene_list = []
-    for gene_list in gene_dict.values():
-        combined_gene_list.extend(gene_list)
-    
-    np.random.seed(seed)
-    gene_set = sample(combined_gene_list, n_rand)
-
-    regions = []
-    for g in gene_set:
-        # get region around gene
-        region = g.copy()
-        region.expand(flanking)
-        regions.append(region)
-
-    return regions
-
-
-
-def get_regions(config, gene_dict, chrom_dict):
-    """Returns list of regions to plot, based on config options"""
-    region_type = config.get("MAIN", "REGION_TYPE")
-
-    if region_type == "COORD":
-        return get_coord_regions(config, chrom_dict)
-    elif region_type == "RANDOM":
-        return get_rand_regions(config, gene_dict)
-    elif region_type == "GENE":
-        return get_gene_regions(config, gene_dict)
-    elif region_type == "BEDFILE":
-        return get_bedfile_regions(config, chrom_dict)
-    
-            
-    raise ValueError("unknown region type %s" % region_type)
-
-    return []
-
                 
 
 def get_genes(config, chrom_dict):
@@ -223,28 +65,18 @@ def get_genes(config, chrom_dict):
     gene_types = genes_str.split(",")
 
     gene_dict = {}
-    tr_dict = {}
-
+    gene_list_by_gene_type = {}
+    
     for gene_type in gene_types:
         genes_label = "GENE_" + gene_type
         path = config.get(genes_label, "PATH")
 
-        sys.stderr.write("reading transcripts from %s\n" % path)
-        trs = genome.transcript.read_transcripts(path, chrom_dict)
+        gene_list, gene_dict, tr_list, tr_dict = genome.gtf.parse_gtf(path, chrom_dict)
+        sys.stderr.write("sorting genes\n")
+        genome.coord.sort_coords(gene_list, use_strand=False)
+        gene_list_by_gene_type[genes_label] = gene_list
 
-        # sort transcripts and group them into genes
-        sys.stderr.write("grouping transcripts into genes\n")
-        genes = genome.gene.group_transcripts(trs)
-        genes = filter(gene_filter, genes)
-
-        # resort transcripts, ignoring strand this time
-        sys.stderr.write("sorting transcripts\n")
-        genome.coord.sort_coords(trs, use_strand=False)
-
-        gene_dict[genes_label] = genes
-        tr_dict[genes_label] = trs
-
-    return tr_dict, gene_dict
+    return gene_list_by_gene_type
 
 
 
@@ -265,28 +97,23 @@ def parse_args():
 def main():
     args = parse_args()
         
-    config = SafeConfigParser()
+    config = ConfigParser()
     config.read([args.tracks_file, args.config_file])
-
-    if config.has_option("MAIN", "ASSEMBLY"):
-        assembly = config.get("MAIN", "ASSEMBLY")
-        gdb = genome.db.GenomeDB(assembly=assembly)
-    else:
-        gdb = genome.db.GenomeDB()
-
-    sys.stderr.write("using assembly %s\n" % gdb.assembly)
 
     r = robjects.r
     
-    chrom_dict = gdb.get_chromosome_dict()
+    chrom_dict = genome.chrom.parse_chromosomes_dict(config.get("MAIN",
+                                                                "CHROM_INFO"))
 
+    gene_types = []
     if config.getboolean("MAIN", "DRAW_GENES"):
-        tr_dict, gene_dict = get_genes(config, chrom_dict)
+        genes_str = config.get("MAIN", "GENES")
+        gene_types = genes_str.split(",")
+        gene_dict = get_genes(config, chrom_dict)
     else:
-        tr_dict = {}
         gene_dict = {}
     
-    regions = get_regions(config, gene_dict, chrom_dict)
+    regions = region.get_regions(config, gene_dict, chrom_dict)
     track_types = get_track_types()
     
     output_prefix = config.get("MAIN", "OUTPUT_PREFIX")
@@ -321,10 +148,10 @@ def main():
         
     plot_num = 0
     for i in range(len(regions)):
-        region = regions[i]
+        reg = regions[i]
         plot_num += 1
         sys.stderr.write("DRAWING REGION %d (%s)\n" %
-                         (plot_num, str(region)))
+                         (plot_num, str(reg)))
 
         # create window for this region
         draw_grid = config.getboolean("MAIN", "DRAW_GRID")
@@ -350,8 +177,8 @@ def main():
                              "region attrs %s\n" %",".join(attr_names))
             
             for a in attr_names:
-                if hasattr(region, a):
-                    pos = int(getattr(region, a))
+                if hasattr(reg, a):
+                    pos = int(getattr(reg, a))
                     vert_lines.append(pos)
                 else:
                     sys.stderr.write("region is missing attribute %s\n" % a)
@@ -370,18 +197,19 @@ def main():
         # sys.stderr.write("vert_lines_col: %s\n" % repr(vert_lines_col))
         margin = config.getfloat("MAIN", "WINDOW_MARGIN")
         cex = config.getfloat("MAIN", "CEX")
-        window = Window(region, draw_grid=draw_grid,
+        window = Window(reg, draw_grid=draw_grid,
                         draw_midline=draw_midline,
                         vert_lines=vert_lines,
                         vert_lines_col=vert_lines_col,
                         margin=margin, cex=cex)
 
         # add gene tracks to window
-        for genes_type in gene_dict.keys():
-            sys.stderr.write("  adding genes track %s\n" % genes_type)
-            options = dict(config.items(genes_type))
+        for genes_type in gene_types:
+            gene_label = "GENE_" + genes_type 
+            sys.stderr.write("  adding genes track %s\n" % gene_label)
+            options = dict(config.items(gene_label))
             track_class = track_types[options['type']]
-            genes_track = track_class(tr_dict[genes_type], region, options)
+            genes_track = track_class(gene_dict[gene_label], reg, options)
             window.add_track(genes_track)
 
         # add other tracks to window
@@ -397,9 +225,6 @@ def main():
                 continue
 
             options = dict(config.items(section_name))
-            # add genome db to the options, so that it can
-            # be optionally used by tracks
-            options['gdb'] = gdb
 
             if 'type' not in options:
                 sys.stderr.write("WARNING: track %s does not define "
@@ -413,12 +238,12 @@ def main():
                                  "track %s with type %s.\n"
                                  "         Known types are %s\n"
                                  % (track_name, track_type,
-                                    ", ".join(track_types.keys())))
+                                    ", ".join(list(track_types.keys()))))
                 continue
             
             try:
                 track_class = track_types[track_type]
-                track = track_class(region, options)
+                track = track_class(reg, options)
                 window.add_track(track)
             except TypeError as err:
                 sys.stderr.write(("-" * 60) + "\n") 

@@ -4,7 +4,7 @@ import sys
 import numpy as np
 import rpy2.robjects as robjects
 
-from numerictrack import NumericTrack
+from .numerictrack import NumericTrack
 
 
 class ContinuousTrack(NumericTrack):
@@ -50,7 +50,7 @@ class ContinuousTrack(NumericTrack):
         try:
             win_sz = np.abs(np.int(win_sz))
             order = np.abs(np.int(order))
-        except ValueError, msg:
+        except ValueError as msg:
             raise ValueError("smoothing window size and order "
                              "must be of type int")
 
@@ -72,7 +72,7 @@ class ContinuousTrack(NumericTrack):
             sys.stderr.write("  WARNING: smoothing window size must be odd; "
                              "incrementing by one.\n")
 
-        order_range = range(order+1)
+        order_range = list(range(order+1))
         half_window = (win_sz -1) // 2
 
         # precompute coefficients

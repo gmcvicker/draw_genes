@@ -291,7 +291,7 @@ class Track(object):
             self.n_row += 1
 
         self.row_assignment = {}
-        for feat, row_id in row_ids.items():
+        for feat, row_id in list(row_ids.items()):
             # update assignment of reverse-strand features so that
             # all numbers are positive (they just come after
             # fwd strand rows)

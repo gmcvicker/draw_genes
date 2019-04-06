@@ -1,5 +1,5 @@
 
-from track import Track
+from .track import Track
 
 
 import numpy as np

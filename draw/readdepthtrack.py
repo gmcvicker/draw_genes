@@ -3,61 +3,50 @@ import sys
 import numpy as np
 import scipy
 
-import genome.db
-import genome.wig
 import genome.trackstat
+import genome.track
 
-from continuoustrack import ContinuousTrack
+from .continuoustrack import ContinuousTrack
 
 class ReadDepthTrack(ContinuousTrack):     
     def __init__(self, region, options):
-
-        source = "gdb"
-
-        if "source" in options:
-            source = options['source']
-               
-        if source == "gdb":
-            track_name = options['track']
-            gdb = options['gdb']
-            track = gdb.open_track(track_name)
-            values = track.get_nparray(region.chrom, 
-                                       start=region.start,
-                                       end=region.end)
+        track_name = options['track']
+        
+        track = genome.track.Track(track_name)
+        
+        values = track.get_nparray(region.chrom, 
+                                   start=region.start,
+                                   end=region.end)
 
 
-            if "scale_factor" in options or "downsample" in options:
-                total_reads = self.get_total_reads(gdb, track)
-            else:
-                total_reads = None
+        if "scale_factor" in options or "downsample" in options:
+            total_reads = self.get_total_reads(gdb, track)
+        else:
+            total_reads = None
 
-            if total_reads and ("downsample" in options):
-                desired_total = int(options['downsample'])
-                    
-                if desired_total >= total_reads:
-                    sys.stderr.write("Not downsampling: total "
-                                     "reads (%d) > desired reads"
-                                     "(%d)\n" % (total_reads, 
-                                                 desired_total))
-                else:                
-                    # perform in-place downsampling of reads
-                    self.downsample_reads(values, total_reads, 
-                                          desired_total)
-                    total_reads = desired_total       
-            
-            if total_reads and ("scale_factor" in options):
-                scale_factor = float(options['scale_factor'])
-                scale = scale_factor / float(total_reads)
-                values = values * scale
-                sys.stderr.write("  total reads %d, using "
-                                 "scale %.3f\n" % (total_reads, scale))
+        if total_reads and ("downsample" in options):
+            desired_total = int(options['downsample'])
 
-                
-            track.close()
+            if desired_total >= total_reads:
+                sys.stderr.write("Not downsampling: total "
+                                 "reads (%d) > desired reads"
+                                 "(%d)\n" % (total_reads, 
+                                             desired_total))
+            else:                
+                # perform in-place downsampling of reads
+                self.downsample_reads(values, total_reads, 
+                                      desired_total)
+                total_reads = desired_total       
 
-        if source == "wig":
-            path = options['path']
-            values = genome.wig.read_ints(path, region)
+        if total_reads and ("scale_factor" in options):
+            scale_factor = float(options['scale_factor'])
+            scale = scale_factor / float(total_reads)
+            values = values * scale
+            sys.stderr.write("  total reads %d, using "
+                             "scale %.3f\n" % (total_reads, scale))
+
+
+        track.close()
           
         log_scale = False
         if "log_scale" in options:

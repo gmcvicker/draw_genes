@@ -1,9 +1,8 @@
 import sys
 
 import numpy as np
-import genome.db
 
-from continuoustrack import ContinuousTrack
+from .continuoustrack import ContinuousTrack
 
 
 class GCContentTrack(ContinuousTrack):

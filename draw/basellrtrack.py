@@ -4,8 +4,7 @@ import sys
 import numpy as np
 import rpy2.robjects as robjects
 
-import genome.db
-from continuoustrack import ContinuousTrack
+from .continuoustrack import ContinuousTrack
 
 
 class BaseLLRTrack(ContinuousTrack):

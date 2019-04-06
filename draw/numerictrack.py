@@ -4,7 +4,7 @@ import numpy as np
 
 import rpy2.robjects as robjects
 
-from track import Track
+from .track import Track
 
 
 class NumericTrack(Track):
